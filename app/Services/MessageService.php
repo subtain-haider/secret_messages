@@ -67,6 +67,7 @@ class MessageService
         try {
             Log::info('Attempting to create a message', ['user_id' => $userId]);
             $data['text'] = $this->encryptionService->encryptMessage($data['text']);
+            $data['expires_at'] = now()->addDays(config('services.message_expiration.default'));
             $message = $this->messageRepository->createMessage($data, $userId);
             Log::info('Message created', ['message_id' => $message->id]);
         } catch (\Exception $e) {
@@ -102,6 +103,8 @@ class MessageService
 
             if ($userId === $message->recipient_id) {
                 Log::info('Message read by recipient', ['user_id' => $userId, 'message_id' => $id]);
+                $message->read_at = now();
+                $message->save();
                 $message->delete();  // Soft delete the message
             }
 

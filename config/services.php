@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'message_expiration' => [
+        'default' => 1, // days after creation
+    ],
+
 ];
