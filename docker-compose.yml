@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: secret-app
+    container_name: secret-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8000:8000"
+    networks:
+      - secret
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    depends_on:
+      - db
+    entrypoint: >
+      sh -c "
+      cp .env.docker .env &&
+      composer install &&
+      php artisan key:generate &&
+      php artisan migrate &&
+      ./vendor/bin/phpunit &&
+      php artisan serve --host=0.0.0.0 --port=8000
+      "
+
+  db:
+    image: mysql:8.0
+    container_name: secret-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: secret
+      MYSQL_USER: secret
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - secret
+
+networks:
+  secret:
+
+volumes:
+  mysql_data:
